@@ -1,10 +1,8 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Application.Services;
-using Application.Interfaces;
+using Application.Core.Services;
+using Application.Core.Interfaces;
+using Application.Core.Interfaces.Repository;
+using Repository;
+using Microsoft.EntityFrameworkCore;
 
 public class Startup
 {
@@ -18,7 +16,11 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddControllers();
+        services.AddDbContext<ApplicationDbContext>
+            (options => options.UseSqlServer(Configuration.GetConnectionString("DBConnection")));
         services.AddScoped<ISearchService, SearchService>();
+        services.AddScoped<ISearchRepository, SearchRepository>();
+        services.AddSwaggerGen();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -29,10 +31,18 @@ public class Startup
         }
 
         app.UseRouting();
-
+        app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
+        app.UseSwagger();
+        app.UseSwaggerUI(options =>
+        {
+            options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+            options.RoutePrefix = string.Empty;
+        });
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
         });
+        
+        
     }
 }

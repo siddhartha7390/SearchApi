@@ -1,19 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
-using Application.Interfaces;
-using System;
-using System.Collections.Generic;
-using Application.Services;
+using Application.Core.Interfaces;
+using Application.Core.Models;
 
 [ApiController]
 [Route("api/[controller]")]
 public class SearchController : ControllerBase
 {
-    private readonly List<string> sampleData = new List<string>
-    {
-        "Data 1",
-        "Data 2",
-        "Data 3"
-    };
     private readonly ISearchService _searchService;
 
     public SearchController(ISearchService searchService)
@@ -22,19 +14,16 @@ public class SearchController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<string>> Get()
+    public ActionResult<IEnumerable<BookResponse>> Get([FromQuery] SearchRequest request)
     {
-        return _searchService.GetData();
-    }
+        SearchRequestValidator validator = new();
+        var result = validator.Validate(request);
 
-    [HttpGet("{id}")]
-    public ActionResult<string> GetById(int id)
-    {
-        if (id >= 0 && id < sampleData.Count)
+        if (!result.IsValid)
         {
-            return Ok(sampleData[id]);
+            return BadRequest(result.Errors);
         }
-
-        return NotFound("Item not found");
+        request.Title = CorrectTypos.CorrectTypo(request.Title);
+        return Ok(_searchService.GetData(request));
     }
 }
