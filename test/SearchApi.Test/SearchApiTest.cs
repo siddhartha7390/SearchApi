@@ -18,10 +18,10 @@ public class SearchApiTest
         _searchController = new SearchController(_searchService, logger);
     }
     [Fact]
-    public void SearchController_should_return_ok()
+    public void SearchController_should_fix_typo_in_genre()
     {
-        _searchService.GetData(new SearchRequest{ Genre = "Sci-fi"}).ReturnsForAnyArgs(new List<BookResponse>());
-        var response = _searchController.Get(new SearchRequest { Title = "ABC", PublicationYear = 2000});
-        _searchService.Received(1).GetData(Arg.Is<SearchRequest>(x => x.Genre == "Scifi"));
+        _searchService.GetData(Arg.Any<SearchRequest>()).ReturnsForAnyArgs(new List<BookResponse>());
+        var response = _searchController.Get(new SearchRequest { Title = "ABC", PublicationYear = 2000, Genre = "Sci-fi"});
+        _searchService.Received(1).GetData(Arg.Is<SearchRequest>(x => x.Genre == "scifi"));
     }
 }
