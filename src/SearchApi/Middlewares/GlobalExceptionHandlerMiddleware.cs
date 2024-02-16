@@ -1,16 +1,16 @@
 using System;
 using System.Net;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
 
 public class GlobalExceptionHandlerMiddleware
 {
     private readonly RequestDelegate _next;
+    private ILogger<GlobalExceptionHandlerMiddleware> _logger;
 
-    public GlobalExceptionHandlerMiddleware(RequestDelegate next)
+    public GlobalExceptionHandlerMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlerMiddleware> logger)
     {
         _next = next;
+        _logger = logger;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -21,6 +21,7 @@ public class GlobalExceptionHandlerMiddleware
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex.Message);
             await HandleExceptionAsync(context, ex);
         }
     }

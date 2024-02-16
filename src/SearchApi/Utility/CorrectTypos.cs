@@ -2,7 +2,7 @@ public class CorrectTypos
 {
     static Dictionary<string, string> typoDictionary = new Dictionary<string, string>
     {
-        {"usr", "user"},
+        {"Self-help", "Selfhelp"},
         {"Sci-fi", "Scifi"},
         // Add more common typos and their corrections as needed
     };

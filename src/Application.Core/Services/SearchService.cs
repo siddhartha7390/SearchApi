@@ -2,18 +2,20 @@ using Application.Core.Models.Poco;
 using System.Collections.Generic;
 using Application.Core.Interfaces;
 using Application.Core.Interfaces.Repository;
-using System.Threading.Tasks;
 using Application.Core.Models;
 using System.Linq;
 using System;
+using Microsoft.Extensions.Logging;
 namespace Application.Core.Services
 {
     public class SearchService : ISearchService
     {
         private readonly ISearchRepository _searchRepository;
-        public SearchService(ISearchRepository searchRepository)
+        private ILogger<SearchService> _logger;
+        public SearchService(ISearchRepository searchRepository, ILogger<SearchService> logger)
         {
             _searchRepository = searchRepository;
+            _logger = logger;
         }
 
         public List<BookResponse> GetData(SearchRequest request)
@@ -28,21 +30,32 @@ namespace Application.Core.Services
             {
                 foreach(var item in books)
                 {
+                    if(string.IsNullOrEmpty(item.Title))
+                    {
+                        _logger.LogWarning($"Title is missing for the Book Id {item.BookId}");
+                        continue;
+                    }
+                    var authors = new List<AuthorResponse>();
+                    foreach (var author in item.Authors)
+                    {
+                        if(string.IsNullOrEmpty(author.FirstName) || string.IsNullOrEmpty(author.LastName))
+                            _logger.LogWarning($"FirstName or LastName is missing for AuthorId {author.AuthorId}");
+                        else
+                            authors.Add(new AuthorResponse
+                            {
+                                AuthorId = author.AuthorId,
+                                Name = $"{author.FirstName} {author.LastName}",
+                                Age = CalculateAge(author.DateOfBirth),
+                                Gender = author.Gender
+                            });
+                    }
                     response.Add(new BookResponse {
                         BookId = item.BookId,
                         Title = item.Title,
                         Genre = item.Genre,
                         PublicationYear = item.PublicationYear,
                         Type = item.Type,
-                        Authors = item.Authors.Select( x =>
-                            new AuthorResponse()
-                            {
-                                AuthorId = x.AuthorId,
-                                Name = $"{x.FirstName} {x.LastName}",
-                                Age = CalculateAge(x.DateOfBirth),
-                                Gender = x.Gender
-                            }
-                        ).ToList()
+                        Authors = authors
                     });
                 }
             }

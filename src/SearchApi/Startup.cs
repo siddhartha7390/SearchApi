@@ -16,10 +16,12 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services.AddControllers();
+        services.AddApplicationInsightsTelemetry(Configuration["ApplicationInsights:InstrumentationKey"]);
         services.AddDbContext<ApplicationDbContext>
             (options => options.UseSqlServer(Configuration.GetConnectionString("DBConnection")));
         services.AddScoped<ISearchService, SearchService>();
         services.AddScoped<ISearchRepository, SearchRepository>();
+        
         services.AddSwaggerGen();
     }
 
@@ -29,7 +31,6 @@ public class Startup
         {
             app.UseDeveloperExceptionPage();
         }
-
         app.UseRouting();
         app.UseMiddleware<GlobalExceptionHandlerMiddleware>();
         app.UseSwagger();
